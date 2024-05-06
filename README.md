@@ -14,3 +14,7 @@ This project contains JWT implementation using Spring Security (Spring Boot) to 
 - Logout
 - Refresh token endpoints
 - Roles and authority validation
+
+### To execute/run
+- Create a database and add its configuration in `application.yml` file.
+- Run the application. (Tables are auto created and dropped when application is stopped)
