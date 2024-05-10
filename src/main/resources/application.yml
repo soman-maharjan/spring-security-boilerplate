@@ -14,8 +14,35 @@ spring:
     username: root
     password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
+  security:
+    oauth2:
+      client:
+        registration:
+#          github:
+#            client-id: Ov23liAbhqilloexrO0A
+#            client-secret: fcfb3277f43829c65684f595671e6fa587f23962
+#          google:
+#            client-id: 15091503617-m5mq0vl78b0a551p5c895mm0rmqppp2g.apps.googleusercontent.com
+#            client-secret: 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
+#            scope:
+#              - profile
+#              - email
+          auth0:
+            client-id: WnpeY34fx99lDR9QqXb7VrXe9tCvmg1h
+            client-secret: QZVIMB0_CD711affBmcWF2GVReYl2dDWGRrbJbutzBAOxnIXoDRVPRi-5dia3E3A
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:3000/callback/
+            scope: [ 'openid', 'profile', 'email' ]
+        provider:
+            auth0:
+              issuer-uri: https://dev-5h6eu6edsmldpqe6.us.auth0.com/
 logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: TRACE
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none

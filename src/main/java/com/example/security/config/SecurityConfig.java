@@ -1,38 +1,65 @@
 package com.example.security.config;
 
-import lombok.RequiredArgsConstructor;
+import com.example.security.auth.oauth2.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
+@AllArgsConstructor
 @Configuration
-@EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AuthenticationProvider authenticationProvider;
+
+    private final OAuthController oauthController;
+    private final CustomAuthorizedClientService customAuthorizedClientService;
+    private final CustomAuthorizationRedirectFilter customAuthorizationRedirectFilter;
+    private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
+    private final CustomStatelessAuthorizationRequestRepository customStatelessAuthorizationRequestRepository;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        // Permit any request that matches the regex
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        // any other request should be authenticated
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+       return http
+                // Endpoint protection
+                .authorizeHttpRequests(config -> config.anyRequest().permitAll())
+                // Disable "JSESSIONID" cookies
+                .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // OAuth2 (social logins)
+                .oauth2Login(config -> {
+                    config.authorizationEndpoint(subconfig -> {
+                        subconfig.baseUri(OAuthController.AUTHORIZATION_BASE_URL);
+                        subconfig.authorizationRequestResolver(this.customAuthorizationRequestResolver);
+                        subconfig.authorizationRequestRepository(this.customStatelessAuthorizationRequestRepository);
+                    });
+                    config.redirectionEndpoint(subconfig -> {
+                        subconfig.baseUri(OAuthController.CALLBACK_BASE_URL + "/*");
+                    });
+                    config.authorizedClientService(this.customAuthorizedClientService);
+                    config.successHandler(this.oauthController::oauthSuccessResponse);
+                    config.failureHandler(this.oauthController::oauthFailureResponse);
+                })
+                // Filters
+                .addFilterBefore(this.customAuthorizationRedirectFilter, OAuth2AuthorizationRequestRedirectFilter.class)
+                // Auth exceptions
+                .exceptionHandling(config -> {
+                    config.accessDeniedHandler(this::accessDenied);
+                    config.authenticationEntryPoint(this::accessDenied);
+                }).build();
+    }
 
-        return http.build();
+    @SneakyThrows
+    private void accessDenied(HttpServletRequest request, HttpServletResponse response, Exception authException) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write("{ \"error\": \"Access Denied\" }");
     }
 
 }
