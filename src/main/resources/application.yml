@@ -31,7 +31,10 @@ spring:
             client-id: WnpeY34fx99lDR9QqXb7VrXe9tCvmg1h
             client-secret: QZVIMB0_CD711affBmcWF2GVReYl2dDWGRrbJbutzBAOxnIXoDRVPRi-5dia3E3A
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:3000/callback/
+#            For Frontend
+#            redirect-uri: http://localhost:3000/callback
+#            For Backend
+            redirect-uri: http://localhost:5173/callback/
             scope: [ 'openid', 'profile', 'email' ]
         provider:
             auth0:
@@ -41,8 +44,3 @@ logging:
     org:
       springframework:
         security: TRACE
-server:
-  servlet:
-    session:
-      cookie:
-        same-site: none

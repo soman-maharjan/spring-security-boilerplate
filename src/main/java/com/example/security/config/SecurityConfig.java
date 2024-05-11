@@ -14,7 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 @AllArgsConstructor
 @Configuration
 public class SecurityConfig {
@@ -28,6 +27,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
        return http
+//               .cors(AbstractHttpConfigurer::disable)
+               .csrf(AbstractHttpConfigurer::disable)
+               .formLogin(AbstractHttpConfigurer::disable)
+               .httpBasic(AbstractHttpConfigurer::disable)
                 // Endpoint protection
                 .authorizeHttpRequests(config -> config.anyRequest().permitAll())
                 // Disable "JSESSIONID" cookies
@@ -39,9 +42,7 @@ public class SecurityConfig {
                         subconfig.authorizationRequestResolver(this.customAuthorizationRequestResolver);
                         subconfig.authorizationRequestRepository(this.customStatelessAuthorizationRequestRepository);
                     });
-                    config.redirectionEndpoint(subconfig -> {
-                        subconfig.baseUri(OAuthController.CALLBACK_BASE_URL + "/*");
-                    });
+                    config.redirectionEndpoint(subconfig -> subconfig.baseUri(OAuthController.CALLBACK_BASE_URL + "/*"));
                     config.authorizedClientService(this.customAuthorizedClientService);
                     config.successHandler(this.oauthController::oauthSuccessResponse);
                     config.failureHandler(this.oauthController::oauthFailureResponse);

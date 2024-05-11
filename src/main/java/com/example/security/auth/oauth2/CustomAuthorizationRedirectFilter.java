@@ -22,7 +22,6 @@ public class CustomAuthorizationRedirectFilter extends OAuth2AuthorizationReques
     ) {
         super(authorizationRequestResolver);
         super.setAuthorizationRequestRepository(authorizationRequestRepository);
-        // Reflection hack to overwrite the parent's redirect strategy
         RedirectStrategy customStrategy = oAuthController::oauthRedirectResponse;
         Field field = OAuth2AuthorizationRequestRedirectFilter.class.getDeclaredField("authorizationRedirectStrategy");
         field.setAccessible(true);

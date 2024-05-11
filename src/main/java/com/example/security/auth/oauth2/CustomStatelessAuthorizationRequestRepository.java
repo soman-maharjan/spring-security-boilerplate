@@ -2,10 +2,10 @@ package com.example.security.auth.oauth2;
 
 import com.example.security.helpers.CookieHelper;
 import com.example.security.helpers.EncryptionHelper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class CustomStatelessAuthorizationRequestRepository implements Authorizat
     }
 
     public CustomStatelessAuthorizationRequestRepository(@NonNull char[] encryptionPassword) {
-        byte[] salt = {0}; // A static salt is OK for these short lived session cookies
+        byte[] salt = {0};
         this.encryptionKey = EncryptionHelper.generateKey(encryptionPassword, salt);
     }
 
@@ -39,10 +39,10 @@ public class CustomStatelessAuthorizationRequestRepository implements Authorizat
     @Override
     public void saveAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request, HttpServletResponse response) {
         if (authorizationRequest == null) {
-            this.removeCookie(request, response);
+            this.removeCookie(response);
             return;
         }
-        this.attachCookie(request, response, authorizationRequest);
+        this.attachCookie(response, authorizationRequest);
     }
 
     @Override
@@ -57,14 +57,14 @@ public class CustomStatelessAuthorizationRequestRepository implements Authorizat
                 .orElse(null);
     }
 
-    private void attachCookie(HttpServletRequest request, HttpServletResponse response, OAuth2AuthorizationRequest value) {
-        String cookie = CookieHelper.generateCookie(OAuthController.OAUTH_COOKIE_NAME, this.encrypt(value), OAUTH_COOKIE_EXPIRY, request);
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie);
+    private void attachCookie(HttpServletResponse response, OAuth2AuthorizationRequest value) {
+        Cookie cookie = CookieHelper.generateCookie(OAuthController.OAUTH_COOKIE_NAME, this.encrypt(value), OAUTH_COOKIE_EXPIRY);
+        response.addCookie(cookie);
     }
 
-    private void removeCookie(HttpServletRequest request, HttpServletResponse response) {
-        String expiredCookie = CookieHelper.generateExpiredCookie(OAuthController.OAUTH_COOKIE_NAME, request);
-        response.setHeader(HttpHeaders.SET_COOKIE, expiredCookie);
+    private void removeCookie(HttpServletResponse response) {
+        Cookie expiredCookie = CookieHelper.generateExpiredCookie(OAuthController.OAUTH_COOKIE_NAME);
+        response.addCookie(expiredCookie);
     }
 
     private String encrypt(OAuth2AuthorizationRequest authorizationRequest) {
