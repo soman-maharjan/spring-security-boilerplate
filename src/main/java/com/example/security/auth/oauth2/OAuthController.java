@@ -29,7 +29,7 @@ public class OAuthController {
 
     public static final String OAUTH_COOKIE_NAME = "OAUTH";
 
-    public static final String SESSION_COOKIE_NAME = "TOKEN";
+    public static final String TOKEN_COOKIE_NAME = "TOKEN";
 
     private final EndUserService endUserService;
 
@@ -58,7 +58,7 @@ public class OAuthController {
         String token = jwtService.generateToken(user);
 
         response.addCookie(CookieHelper.generateExpiredCookie(OAUTH_COOKIE_NAME));
-        response.addCookie(CookieHelper.generateCookie(SESSION_COOKIE_NAME, token, Duration.ofDays(1)));
+        response.addCookie(CookieHelper.generateCookie(TOKEN_COOKIE_NAME, token, Duration.ofDays(1)));
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     }
 

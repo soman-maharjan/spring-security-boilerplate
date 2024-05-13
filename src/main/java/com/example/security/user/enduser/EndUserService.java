@@ -1,6 +1,7 @@
 package com.example.security.user.enduser;
 
 import com.example.security.auth.oauth2.user.Oauth2User;
+import com.example.security.user.Role;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class EndUserService {
         EndUser endUser = new EndUser();
         endUser.setReferenceId(UUID.randomUUID());
         endUser.setEmail(oauth2User.getEmail());
+        endUser.setRole(Role.USER);
         endUserRepository.save(endUser);
         return endUser;
     }

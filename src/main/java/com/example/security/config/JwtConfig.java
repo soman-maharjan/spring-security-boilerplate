@@ -3,6 +3,7 @@ package com.example.security.config;
 import com.example.security.jwt.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,17 +30,21 @@ public class JwtConfig extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String email;
+        Cookie[] cookies = request.getCookies();
+        String jwt = null;
+        String email = null;
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request, response);
-            return;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("TOKEN")) {
+                    jwt = cookie.getValue();
+                    email = jwtService.extractEmail(jwt);
+                    break;
+                }
+            }
         }
 
-        jwt = authHeader.substring(7);
-        email = jwtService.extractEmail(jwt);
+//            filterChain.doFilter(request, response);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
