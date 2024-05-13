@@ -1,11 +1,14 @@
 package com.example.security.auth.oauth2;
 
 import com.example.security.auth.AuthenticationHelper;
+import com.example.security.auth.oauth2.user.Oauth2User;
 import com.example.security.helpers.CookieHelper;
-import com.example.security.user.AccountService;
+import com.example.security.jwt.JwtService;
+import com.example.security.user.enduser.EndUser;
+import com.example.security.user.enduser.EndUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -15,10 +18,9 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Controller;
 
 import java.time.Duration;
-import java.util.UUID;
 
 @Controller
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OAuthController {
 
     public static final String AUTHORIZATION_BASE_URL = "/oauth2/authorization";
@@ -27,9 +29,11 @@ public class OAuthController {
 
     public static final String OAUTH_COOKIE_NAME = "OAUTH";
 
-    public static final String SESSION_COOKIE_NAME = "SESSION";
+    public static final String TOKEN_COOKIE_NAME = "TOKEN";
 
-    private final AccountService accountService;
+    private final EndUserService endUserService;
+
+    private final JwtService jwtService;
 
     @SneakyThrows
     public void oauthRedirectResponse(HttpServletRequest request, HttpServletResponse response, String url) {
@@ -40,21 +44,22 @@ public class OAuthController {
 
     @SneakyThrows
     public void oauthSuccessCallback(OAuth2AuthorizedClient client, Authentication authentication) {
-        UUID accountId = this.accountService.findOrRegisterAccount(
-                authentication.getName(),
-                authentication.getName().split("\\|")[0],
-                ((DefaultOidcUser) authentication.getPrincipal()).getClaims()
-        );
-        AuthenticationHelper.attachAccountId(authentication, accountId.toString());
+        Oauth2User oauth2user = new Oauth2User(((DefaultOidcUser) authentication.getPrincipal()).getClaims());
+
+        String email = this.endUserService.findOrRegisterUser(oauth2user);
+        AuthenticationHelper.attachEmail(authentication, email);
     }
 
     @SneakyThrows
     public void oauthSuccessResponse(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        String accountId = AuthenticationHelper.retrieveAccountId(authentication);
+        String email = AuthenticationHelper.retrieveEmail(authentication);
+        EndUser user = endUserService.findByEmail(email);
+
+        String token = jwtService.generateToken(user);
+
         response.addCookie(CookieHelper.generateExpiredCookie(OAUTH_COOKIE_NAME));
-        response.addCookie(CookieHelper.generateCookie(SESSION_COOKIE_NAME, accountId, Duration.ofDays(1)));
+        response.addCookie(CookieHelper.generateCookie(TOKEN_COOKIE_NAME, token, Duration.ofDays(1)));
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("{ \"status\": \"success\" }");
     }
 
     @SneakyThrows

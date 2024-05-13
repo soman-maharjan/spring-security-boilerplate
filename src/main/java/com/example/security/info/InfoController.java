@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.example.security.auth.oauth2.OAuthController.SESSION_COOKIE_NAME;
+import static com.example.security.auth.oauth2.OAuthController.TOKEN_COOKIE_NAME;
 
 @RestController
 @RequestMapping("info")
 public class InfoController {
 
     @GetMapping("")
-    public Info getInfo(@CookieValue(name = SESSION_COOKIE_NAME, required = false) String session) {
+    public Info getInfo(@CookieValue(name = TOKEN_COOKIE_NAME, required = false) String session) {
         return new Info()
                 .setApplication("tutorial-social-logins")
                 .setSession(session);

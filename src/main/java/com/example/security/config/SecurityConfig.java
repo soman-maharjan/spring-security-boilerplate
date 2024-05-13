@@ -8,11 +8,13 @@ import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @AllArgsConstructor
 @Configuration
@@ -24,6 +26,8 @@ public class SecurityConfig {
     private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
     private final CustomStatelessAuthorizationRequestRepository customStatelessAuthorizationRequestRepository;
 
+    private final JwtConfig jwtConfig;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
        return http
@@ -32,9 +36,14 @@ public class SecurityConfig {
                .formLogin(AbstractHttpConfigurer::disable)
                .httpBasic(AbstractHttpConfigurer::disable)
                 // Endpoint protection
-                .authorizeHttpRequests(config -> config.anyRequest().permitAll())
+                .authorizeHttpRequests(config -> {
+                        config.requestMatchers("/oauth2/**").permitAll();
+                        config.anyRequest().authenticated();
+                    }
+                )
                 // Disable "JSESSIONID" cookies
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+               .addFilterBefore(jwtConfig, UsernamePasswordAuthenticationFilter.class)
                 // OAuth2 (social logins)
                 .oauth2Login(config -> {
                     config.authorizationEndpoint(subconfig -> {
