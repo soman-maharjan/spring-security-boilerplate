@@ -31,9 +31,8 @@ public class OAuthController {
 
     public static final String TOKEN_COOKIE_NAME = "TOKEN";
 
-    private final EndUserService endUserService;
-
     private final JwtService jwtService;
+    private final EndUserService endUserService;
 
     @SneakyThrows
     public void oauthRedirectResponse(HttpServletRequest request, HttpServletResponse response, String url) {
@@ -45,16 +44,18 @@ public class OAuthController {
     @SneakyThrows
     public void oauthSuccessCallback(OAuth2AuthorizedClient client, Authentication authentication) {
         Oauth2User oauth2user = new Oauth2User(((DefaultOidcUser) authentication.getPrincipal()).getClaims());
-
         String email = this.endUserService.findOrRegisterUser(oauth2user);
+        if(email == ""){
+            return;
+        }
         AuthenticationHelper.attachEmail(authentication, email);
     }
 
     @SneakyThrows
     public void oauthSuccessResponse(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         String email = AuthenticationHelper.retrieveEmail(authentication);
-        EndUser user = endUserService.findByEmail(email);
 
+        EndUser user = endUserService.findByEmail(email);
         String token = jwtService.generateToken(user);
 
         response.addCookie(CookieHelper.generateExpiredCookie(OAUTH_COOKIE_NAME));
@@ -67,7 +68,6 @@ public class OAuthController {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.addCookie(CookieHelper.generateExpiredCookie(OAUTH_COOKIE_NAME));
-        response.getWriter().write("{ \"status\": \"failure\" }");
     }
 
 }

@@ -8,7 +8,6 @@ import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,7 +25,7 @@ public class SecurityConfig {
     private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
     private final CustomStatelessAuthorizationRequestRepository customStatelessAuthorizationRequestRepository;
 
-    private final JwtConfig jwtConfig;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,7 +42,7 @@ public class SecurityConfig {
                 )
                 // Disable "JSESSIONID" cookies
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-               .addFilterBefore(jwtConfig, UsernamePasswordAuthenticationFilter.class)
+               .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // OAuth2 (social logins)
                 .oauth2Login(config -> {
                     config.authorizationEndpoint(subconfig -> {
@@ -60,16 +59,15 @@ public class SecurityConfig {
                 .addFilterBefore(this.customAuthorizationRedirectFilter, OAuth2AuthorizationRequestRedirectFilter.class)
                 // Auth exceptions
                 .exceptionHandling(config -> {
-                    config.accessDeniedHandler(this::accessDenied);
-                    config.authenticationEntryPoint(this::accessDenied);
+                    config.accessDeniedHandler(this::unauthorized);
+                    config.authenticationEntryPoint(this::unauthorized);
                 }).build();
     }
 
     @SneakyThrows
-    private void accessDenied(HttpServletRequest request, HttpServletResponse response, Exception authException) {
+    private void unauthorized(HttpServletRequest request, HttpServletResponse response, Exception authException) {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("{ \"error\": \"Access Denied\" }");
     }
 
 }

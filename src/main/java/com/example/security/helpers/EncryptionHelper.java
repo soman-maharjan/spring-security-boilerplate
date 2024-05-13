@@ -15,7 +15,7 @@ import java.security.SecureRandom;
 public class EncryptionHelper {
 
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final int KEY_ITERATION_COUNT = 100_000; // https://security.stackexchange.com/q/3959
+    private static final int KEY_ITERATION_COUNT = 100_000;
     private static final int KEY_SIZE = 32;
     private static final int IV_SIZE = 16;
 

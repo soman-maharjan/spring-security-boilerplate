@@ -18,29 +18,19 @@ spring:
     oauth2:
       client:
         registration:
-          #          github:
-          #            client-id: Ov23liAbhqilloexrO0A
-          #            client-secret: 5718dbebcb8f06e869de0391c64fbe5e7e038d01
-          #          google:
-          #            client-id: 15091503617-m5mq0vl78b0a551p5c895mm0rmqppp2g.apps.googleusercontent.com
-          #            client-secret: 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
-          #            scope:
-          #              - profile
-          #              - email
           auth0:
-            client-id: WnpeY34fx99lDR9QqXb7VrXe9tCvmg1h
-            client-secret: Yb4bXqEp-cqv8-LgxWroclYXmIm-cz7_OgZaaSdGa0-AR4eZS_L3uPOMyVcNDBqI
+            client-id:
+            client-secret:
             authorization-grant-type: authorization_code
-            #            For Frontend
-            #            redirect-uri: http://localhost:3000/callback
-            #            For Backend
             redirect-uri: http://localhost:5173/callback/
             scope: [ 'openid', 'profile', 'email' ]
         provider:
           auth0:
-            issuer-uri: https://dev-5h6eu6edsmldpqe6.us.auth0.com/
+            issuer-uri:
 logging:
   level:
     org:
       springframework:
         security: TRACE
+jwt:
+  secret:

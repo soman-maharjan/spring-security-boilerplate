@@ -1,9 +1,11 @@
 package com.example.security.jwt;
 
+import com.example.security.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
@@ -12,12 +14,21 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
+    private final JwtConfig jwtConfig;
 
-    private final static String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    private Properties getProperties() {
+        Properties properties = System.getProperties();
+        properties.put("jwt.secret", jwtConfig.getSecret() );
+
+        return properties;
+    }
+
     public String extractEmail(String token) {
         return extractClaims(token, Claims::getSubject);
     }
@@ -27,7 +38,8 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        System.out.println("Secret: "+ jwtConfig.getSecret());
+        byte[] keyBytes = Decoders.BASE64.decode(jwtConfig.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

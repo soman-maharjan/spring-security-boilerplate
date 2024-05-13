@@ -20,8 +20,7 @@ public class EndUserService {
 
     public String findOrRegisterUser(Oauth2User oauth2User) {
         if(endUserRepository.existsByEmail(oauth2User.getEmail())){
-            // user exists, create and return JWT token;
-            return "Email address here";
+            return oauth2User.getEmail();
         }else{
             EndUser enduser = registerUser(oauth2User);
             return enduser.getEmail();

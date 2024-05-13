@@ -9,11 +9,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/enduser")
+@RequestMapping("/user")
 public class EndUserController {
     private final EndUserService endUserService;
 
-    @GetMapping("/list")
+    @GetMapping("")
     public List<EndUser> userList(){
         return endUserService.findAll();
     }
