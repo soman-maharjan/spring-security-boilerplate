@@ -4,9 +4,11 @@ This project contains JWT implementation using Spring Security (Spring Boot) to 
 ### Features
 - Register User
 - Login
-- Authorize using JWT token for endpoints other than `/api/v1/auth/**`
+- Social Login (Login with Google, Github, linkedin, facebook, twitter)
+- Authorize using JWT token for endpoints other than `/oauth2/**`
 - User Roles
 - Uses hibernate to generate create-drop schemas
+- HTTPONLY cookie for JWT token after the user gets logged in.
 
 ### TODOs
 - Implement access token and refresh token
