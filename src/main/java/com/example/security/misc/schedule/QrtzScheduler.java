@@ -13,6 +13,7 @@ import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.ApplicationContext;
@@ -47,10 +48,11 @@ public class QrtzScheduler {
     }
 
     @Bean
-    public Scheduler scheduler(Trigger trigger, JobDetail job, SchedulerFactoryBean factory) throws SchedulerException {
+    public Scheduler scheduler(Trigger trigger, Trigger trigger2, @Qualifier("jobDetail") JobDetail jobDetail,@Qualifier("jobDetail2") JobDetail jobDetail2, SchedulerFactoryBean factory) throws SchedulerException {
         logger.debug("Getting a handle to the Scheduler");
         Scheduler scheduler = factory.getScheduler();
-        scheduler.scheduleJob(job, trigger);
+        scheduler.scheduleJob(jobDetail, trigger);
+        scheduler.scheduleJob(jobDetail2, trigger2);
 
         logger.debug("Starting Scheduler threads");
         scheduler.start();
@@ -74,16 +76,29 @@ public class QrtzScheduler {
 
     @Bean
     public JobDetail jobDetail() {
-
         return newJob().ofType(SampleJob.class).storeDurably().withIdentity(JobKey.jobKey("Qrtz_Job_Detail")).withDescription("Invoke Sample Job service...").build();
     }
 
     @Bean
-    public Trigger trigger(JobDetail job) {
-
+    public Trigger trigger(@Qualifier("jobDetail") JobDetail job) {
         int frequencyInSec = 10;
         logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
 
         return newTrigger().forJob(job).withIdentity(TriggerKey.triggerKey("Qrtz_Trigger")).withDescription("Sample trigger").withSchedule(simpleSchedule().withIntervalInSeconds(frequencyInSec).repeatForever()).build();
+    }
+
+
+    @Bean
+    public JobDetail jobDetail2() {
+        return newJob().ofType(AnotherJob.class).storeDurably().withIdentity(JobKey.jobKey("Qrtz_Job_Detail_2")).withDescription("Invoke Sample Job service 2...").build();
+    }
+
+    @Bean
+    public Trigger trigger2(@Qualifier("jobDetail2") JobDetail job) {
+
+        int frequencyInSec = 1;
+        logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
+
+        return newTrigger().forJob(job).withIdentity(TriggerKey.triggerKey("Qrtz_Trigger_2")).withDescription("Sample trigger 2").withSchedule(simpleSchedule().withIntervalInSeconds(frequencyInSec).repeatForever()).build();
     }
 }
