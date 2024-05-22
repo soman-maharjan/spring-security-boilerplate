@@ -11,8 +11,8 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
   datasource:
     url: jdbc:mysql://localhost:3306/security
-    username: root
-    password: password
+    username:
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
   security:
     oauth2:
@@ -26,7 +26,7 @@ spring:
             scope: [ 'openid', 'profile', 'email' ]
         provider:
           auth0:
-            issuer-uri: https://dev-5h6eu6edsmldpqe6.us.auth0.com/
+            issuer-uri:
   quartz:
     job-store-type: jdbc
     jdbc:
