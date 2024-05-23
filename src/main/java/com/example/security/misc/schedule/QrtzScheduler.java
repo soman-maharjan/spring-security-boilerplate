@@ -25,7 +25,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 import java.util.Properties;
 @Configuration
-@ConditionalOnExpression("'${using.spring.schedulerFactory}'=='false'")
+@ConditionalOnExpression("'${using.spring.schedulerFactory}'=='true'")
 public class QrtzScheduler {
 
     Logger logger = LoggerFactory.getLogger(getClass());
