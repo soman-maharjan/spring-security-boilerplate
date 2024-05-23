@@ -12,6 +12,5 @@ import org.springframework.stereotype.Component;
 @Configuration
 @ConfigurationProperties(prefix = "jwt")
 public class JwtConfig {
-
     private String secret;
 }
